@@ -64,10 +64,8 @@ public:
     ~QtFront();
     void LoadQt(void);
     void UpdateQtDisplay();
-/*
-    void UpdateInputDisplay(SensoryRegion *newPattern);
+    void UpdateInputDisplay(input_patterns *patterns);
     void UpdateHtmDisplay();
-*/
     QtSensoryRegion* GetCurrentInputDisplay() { return CurrentInput; }
     void CreateActions();
     void CreateMenuBar();

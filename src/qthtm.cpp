@@ -3,6 +3,7 @@
 #include "htm.h"
 
 #include <QGridLayout>
+#include <stdio.h>
 
 QtHtm::QtHtm(QWidget *parent, struct layer *layer4)
     : QWidget(parent)

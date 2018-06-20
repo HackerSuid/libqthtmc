@@ -1,4 +1,5 @@
 #include "qt.h"
+#include "htm.h"
 
 #include <QtGui/QApplication>
 #include <QtGui/QGridLayout>
@@ -144,9 +145,11 @@ void QtFront::CreateTrainingWidget()
 
     QLabel *singProgLab = new QLabel("Single program");
     TrainSingProgButton = new QPushButton("execute");
+/*
     TrainSingProgButton->setStyleSheet("color: black;");
-    //controlsLayout->addWidget(singProgLab, 1, 0);
-    //controlsLayout->addWidget(TrainSingProgButton, 1, 1);
+    controlsLayout->addWidget(singProgLab, 1, 0);
+    controlsLayout->addWidget(TrainSingProgButton, 1, 1);
+*/
 
     QLabel *VarLab = new QLabel("Variable program: ");
     VarEdit = new QLineEdit();
@@ -231,9 +234,9 @@ void QtFront::SetActiveWindow(QWidget *w)
 
 void QtFront::UpdateQtDisplay()
 {
-/*
-    UpdateInputDisplay(CurrentInput->GetPattern());
+    UpdateInputDisplay(get_htm_input_patterns());
     UpdateHtmDisplay();
+/*
     predCompWindowVal->setText(
         QString::number(
             HtmDisplay->PredictionComprehensionMetric(),
@@ -248,6 +251,154 @@ void QtFront::UpdateQtDisplay()
     );
 */
     this->repaint();
+}
+
+/*
+ * Update the QtSensoryRegion grid display to reflect th
+ current input
+ * pattern by changing the brush color of the QtUnits.
+ */
+void QtFront::UpdateInputDisplay(input_patterns *patterns)
+{
+    QGridLayout *currSensoryGrid =
+        (QGridLayout *)sensoryGroup->layout();
+    QGridLayout *newSensoryGrid =
+        CurrentInput->SensoryUnitGrid();
+    //unsigned int w = patterns->sensory_sz.width;
+    //unsigned int h = patterns->sensory_sz.height;
+
+    //SensoryRegion *mp = newPattern->GetMotorPattern();
+    //QGridLayout *currMotorGrid =
+    //    (QGridLayout *)motorGroup->layout();
+    //QGridLayout *newMotorGrid =
+    //    CurrentInput->MotorUnitGrid();
+
+    //SensoryRegion *lp = newPattern->GetLocationPattern();
+    QGridLayout *currLocGrid =
+        (QGridLayout *)locGroup->layout();
+    QGridLayout *newLocGrid =
+        CurrentInput->LocationUnitGrid();
+
+    int r, g, b;
+    QColor rgb;
+    QtUnit *oldqtunit = NULL, *newqtunit = NULL;
+
+    /* sensory input display grid */
+    for (int i=0; i<newSensoryGrid->count(); i++) {
+        int row, col, rs, cs;
+        newSensoryGrid->getItemPosition(i, &row, &col, &rs, &cs);
+        newqtunit = (QtUnit *)newSensoryGrid->itemAt(i)->widget();
+        rgb = newqtunit->getBrushColor();
+        rgb.getRgb(&r, &g, &b);
+        oldqtunit = (QtUnit *)currSensoryGrid->itemAt(i)->widget();
+        oldqtunit->setBrushColor(QColor(r, g, b));
+    }
+    /* motor input display grid */
+    /*
+    for (int i=0; i<newMotorGrid->count(); i++) {
+        int row, col, rs, cs;
+        newMotorGrid->getItemPosition(i, &row, &col, &rs
+ &cs);
+        newqtunit = (QtUnit *)newMotorGrid->itemAt(i)->w
+dget();
+        rgb = newqtunit->getBrushColor();
+        rgb.getRgb(&r, &g, &b);
+        oldqtunit = (QtUnit *)currMotorGrid->itemAt(i)->
+idget();
+        oldqtunit->setBrushColor(QColor(r, g, b));
+        oldqtunit->SetActive(newqtunit->IsActive());
+    }
+    */
+
+    /* location input display grid */
+    for (unsigned int i=0; i<(unsigned int)newLocGrid->count(); i++) {
+        int row, col, rs, cs;
+        newLocGrid->getItemPosition(i, &row, &col, &rs, &cs);
+        newqtunit = (QtUnit *)newLocGrid->itemAt(i)->widget();
+        rgb = newqtunit->getBrushColor();
+        rgb.getRgb(&r, &g, &b);
+        oldqtunit = (QtUnit *)currLocGrid->itemAt(i)->widget();
+        oldqtunit->setBrushColor(QColor(r, g, b));
+        //oldqtunit->SetActive(newqtunit->IsActive());
+    }
+}
+
+/*
+ * Update the QtHtmSublayer grid display after running t
+e CLA.
+ */
+void QtFront::UpdateHtmDisplay()
+{
+    QGridLayout *currGrid = (QGridLayout *)smiLayerGroup->layout();
+    QGridLayout *newHtmGrid = HtmDisplay->UnitGrid(objHtm);
+/*
+    HtmSublayer **sublayers = htm->GetSublayers();
+    unsigned int h = sublayers[0]->GetHeight();
+    unsigned int w = sublayers[0]->GetWidth();
+    unsigned int d = sublayers[0]->GetDepth();
+*/
+    unsigned int h = layer4->height;
+    unsigned int w = layer4->width;
+    QtUnit *colUnit = NULL;
+/*
+    QList<QtCell *> qtCells;
+*/
+    //QGridLayout *cellGrid = NULL;
+/*
+    QColor rgb[d+1];
+    int r[d+1], g[d+1], b[d+1];
+*/
+    QColor rgb[1];
+    int r[1], g[1], b[1];
+
+    for (unsigned int i=0; i<h; i++) {
+        for (unsigned int j=0; j<w; j++) {
+            colUnit = (QtUnit *)newHtmGrid->itemAtPosition(i, j)->widget();
+            //cellGrid = colUnit->GetCellGrid();
+            rgb[0] = colUnit->getBrushColor();
+            rgb[0].getRgb(&r[0], &g[0], &b[0]);
+/*
+            qtCells = colUnit->findChildren<QtCell *>();
+            for (unsigned int c=1; c<=d; c++) {
+                rgb[c] = qtCells.at(c-1)->getBrushColor();
+                rgb[c].getRgb(&r[c], &g[c], &b[c]);
+            }
+*/
+            colUnit =
+                (QtUnit *)currGrid->itemAtPosition(i, j)->widget();
+            colUnit->setBrushColor(QColor(r[0], g[0], b[0]));
+/*
+            qtCells = colUnit->findChildren<QtCell *>();
+            for (unsigned int c=1; c<=d; c++)
+                qtCells.at(c-1)->setBrushColor(
+                    QColor(r[c], g[c], b[c])
+                );
+*/
+        }
+    }
+
+/*
+    QGridLayout *currPoolingGrid = (QGridLayout *)poolGroup->layout();
+    QGridLayout *newPoolingGrid = HtmDisplay->PoolUnitGrid(objHtm);
+    PoolingLayer *p = htm->GetPoolingLayer();
+    h = p->GetHeight();
+    w = p->GetWidth();
+    QColor rgbPool;
+    int rP, gP, bP;
+
+    for (unsigned int i=0; i<h; i++) {
+        for (unsigned int j=0; j<w; j++) {
+            colUnit =
+                (QtUnit *)newPoolingGrid->itemAtPosition(i, j)->widget();
+            rgbPool = colUnit->getBrushColor();
+            rgbPool.getRgb(&rP, &gP, &bP);
+            colUnit =
+                (QtUnit *)currPoolingGrid->itemAtPosition(i, j)->widget();
+            colUnit->setBrushColor(
+                QColor(rP, gP, bP));
+        }
+    }
+*/
 }
 
 // BEGIN QT SLOTS
@@ -285,21 +436,22 @@ void QtFront::RunVariableProgram()
 
 int QtFront::Run()
 {
-    SensoryRegion *pattern;
+    input_patterns *patterns=NULL;
 
+    process_subcortical_input();
+
+    patterns = get_htm_input_patterns();
+    if (patterns == NULL) {
 /*
-    htm->SendInputThroughLayers();
-
-    pattern = htm->CurrentPattern();
-    if (pattern == NULL) {
         htm->ReloadCodecTarget();
         htm->ConnectSubcorticalInput(true);
         return 0;
+*/
     }
 
-    CurrentInput = new QtSensoryRegion(this, pattern);
-    HtmDisplay = new QtHtm(this, htm);
-*/
+    CurrentInput = new QtSensoryRegion(this, patterns);
+    HtmDisplay = new QtHtm(this, layer4);
+
     return 1;
 }
 
